@@ -24,7 +24,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from libqtile import bar, layout, widget
+import os, subprocess
+
+from libqtile import qtile, bar, layout, widget, hook
 from libqtile.config import Click, Drag, Group, Key, Match, Screen
 from libqtile.lazy import lazy
 from libqtile.utils import guess_terminal
@@ -75,24 +77,22 @@ keys = [
     Key([mod], "r", lazy.spawncmd(), desc="Spawn a command using a prompt widget"),
 ]
 
-groups = [Group(i) for i in "asd"]
-
-for i in groups:
+groups = [Group("main"), Group("foo"), Group("bar")]
+for i in range(len(groups)):
+    string = chr(49 + i) * 1
     keys.extend(
         [
             # mod1 + letter of group = switch to group
             Key(
-                [mod],
-                i.name,
-                lazy.group[i.name].toscreen(),
-                desc="Switch to group {}".format(i.name),
+                [mod], string,
+                lazy.group[groups[i].name].toscreen(),
+                desc="Switch to group {}".format(groups[i].name),
             ),
             # mod1 + shift + letter of group = switch to & move focused window to group
             Key(
-                [mod, "shift"],
-                i.name,
-                lazy.window.togroup(i.name, switch_group=True),
-                desc="Switch to & move focused window to group {}".format(i.name),
+                [mod, "shift"], string,
+                lazy.window.togroup(groups[i].name, switch_group=True),
+                desc="Switch to & move focused window to group {}".format(groups[i].name),
             ),
             # Or, use below if you prefer not to switch to that group.
             # # mod1 + shift + letter of group = move focused window to group
@@ -127,7 +127,11 @@ layouts = [
 widget_defaults = dict(
     font="sans",
     fontsize=20,
-    padding=5,
+    padding=3,
+    margin=5,
+    margin_x=7,
+    margin_y=2,
+    background="#1d1f1f",
 )
 extension_defaults = widget_defaults.copy()
 
@@ -135,39 +139,40 @@ screens = [
     Screen(
         top=bar.Bar(
             [
-                widget.GroupBox(
-                  active="#dd00bb",
-                  inactive="#aaaaaa",
-                  padding_x=7,
-                  padding_y=2
+              widget.Image(
+                filename = "~/.config/qtile/icons/cpp.png",
+                scale = "True",
+                mouse_callbacks = {'Button1': lambda: qtile.cmd_spawn(terminal)}
+              ),
+              widget.GroupBox(
+                  active="#aa00bb",
+                  inactive="#699669",
                 ),
                 widget.Prompt(),
                 widget.WindowName(),
-                widget.Chord(
-                    chords_colors={
-                        "launch": ("#ff0000", "#ffffff"),
-                    },
-                    name_transform=lambda name: name.upper(),
-                ),
-                # widget.TextBox("default config", name="default"),
-                # widget.TextBox("Press &lt;M-r&gt; to spawn", foreground="#d75f5f"),
+                #widget.Chord(
+                #    chords_colors={
+                #        "launch": ("#ff0000", "#ffffff"),
+                #    },
+                #    name_transform=lambda name: name.upper(),
+                #),
                 # NB Systray is incompatible with Wayland, consider using StatusNotifier instead
                 # widget.StatusNotifier(),
                 widget.Systray(), 
                 widget.Volume(
-                  background="#0099ff",
+                  background="#0033aa",
                 ),
                 widget.Clock(format=" %H:%M  %a  %d.%m.%Y"),
                 widget.QuickExit(
-                  default_text="  ⏻   ",
-                  countdown_format=" {} s ",
+                  default_text="   ⏻    ",
+                  countdown_format=" {} sec ",
                   font_shadow="#000000",
-                  background="#ef69af",
+                  background="#aa00bb",
                 ),
             ],
-            28,
-            background="#302a30",
-            opacity=0.9,
+            32,
+            background="#1d1f1f",
+            opacity=0.93,
             # border_width=[2, 0, 2, 0],  # Draw top and bottom borders
             # border_color=["ff00ff", "000000", "ff00ff", "000000"]  # Borders are magenta
         ),
@@ -208,6 +213,16 @@ auto_minimize = True
 
 # When using the Wayland backend, this can be used to configure input devices.
 wl_input_rules = None
+"""
+@hook.subscribe.startup_once
+def start_once():
+    home = os.path.expanduser('~')
+    subprocess.call([home + '/.config/qtile/autostart.sh'])
+"""
+@hook.subscribe.startup_once
+def autostart():
+    home = os.path.expanduser('~/.config/qtile/autostart.sh')
+    subprocess.Popen([home])
 
 # XXX: Gasp! We're lying here. In fact, nobody really uses or cares about this
 # string besides java UI toolkits; you can see several discussions on the
