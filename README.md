@@ -1,1 +1,1 @@
-# linuxSetup
+.dotfiles from my home directory
