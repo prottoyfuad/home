@@ -1,4 +1,4 @@
-
+" author : pro@eunoia
 " Comments in Vimscript start with a `"`.
 
 " If you open this file in Vim, it'll be syntax highlighted for you.
@@ -21,7 +21,8 @@ set fileencoding=utf-8
 " For global file formatting
 set fileformats=unix
 
-" Set copy and paste from/to vim, e.g vim --> browser, browser --> vim
+" Set copy and paste from/to vim, e.g vim --> browser, browser --> vim 
+" in unix machine go with unamedplus; use unnamed/unnamedplus, whichever works
 set clipboard=unnamedplus
 
 " Turn on syntax highlighting.
@@ -67,13 +68,14 @@ set smartcase
 set incsearch
 
 " Unbind some useless/annoying default key bindings.
-nmap Q <Nop> " 'Q' in normal mode enters Ex mode. You almost never want this.
+"   'Q' in normal mode enters Ex mode. You almost never want this.
+nmap Q <Nop>
 
 " Disable audible bell because it's annoying.
 set noerrorbells visualbell t_vb=
 
-" Enable mouse support. You should avoid relying on this too much, but it can
-" sometimes be convenient.
+" Enable mouse support. You should avoid relying on this too much
+" but it can sometimes be convenient.
 set mouse+=a
 
 " Fixes 'mouse interaction' while using Alacritty terminal
@@ -86,6 +88,9 @@ set autoindent
 set tabstop=2
 set expandtab
 retab!
+
+" Width is used for >>/<< in normal mode
+set shiftwidth=2
 
 " Try to prevent bad habits like using the arrow keys for movement. This is
 " not the only possible bad habit. For example, holding down the h/j/k/l keys
@@ -105,5 +110,7 @@ inoremap <Up>    <ESC>:echoe "Use k"<CR>
 inoremap <Down>  <ESC>:echoe "Use j"<CR>
 
 " Experimental Stuff
+"   this wont back up your current unsaved edits,
+"   but without this removing the backups and swapfiles is annoying
 set nobackup
 set noswapfile
