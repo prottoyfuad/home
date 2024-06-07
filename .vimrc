@@ -1,6 +1,6 @@
 " author : pro@eunoia
-" Comments in Vimscript start with a `"`.
 
+" Comments in Vimscript start with a `"`.
 " If you open this file in Vim, it'll be syntax highlighted for you.
 
 " Vim is based on Vi. Setting `nocompatible` switches from the default
@@ -12,6 +12,9 @@
 " `vim -u foo`).
 set nocompatible
 
+" enable/disable line wrapping; wrap/nowrap
+set nowrap
+
 " The encoding displayed.
 set encoding=utf-8
 
@@ -22,7 +25,7 @@ set fileencoding=utf-8
 set fileformats=unix
 
 " Set copy and paste from/to vim, e.g vim --> browser, browser --> vim 
-" in unix machine go with unamedplus; use unnamed/unnamedplus, whichever works
+" in unix machine go with unamedplus; otherwise unnamed/unnamedplus, whichever works
 set clipboard=unnamedplus
 
 " Turn on syntax highlighting.
@@ -38,8 +41,7 @@ set number
 " relativenumber enabled, the current line shows the true line number, while
 " all other lines (above and below) are numbered relative to the current line.
 " This is useful because you can tell, at a glance, what count is needed to
-" jump up or down to a particular line, by {count}k to go up or {count}j to go
-" down.
+" jump up or down to a particular line, by {count}k to go up or {count}j to go down.
 set relativenumber
 
 " Always show the status line at the bottom, even if you only have one window open.
@@ -47,15 +49,19 @@ set laststatus=2
 
 " The backspace key has slightly unintuitive behavior by default. For example,
 " by default, you can't backspace before the insertion point set with 'i'.
-" This configuration makes backspace behave more reasonably, in that you can
-" backspace over anything.
+" This configuration makes backspace behave more reasonably
+" this way, you can backspace over anything.
 set backspace=indent,eol,start
+
+" By default, newly opened file in splitview opens on top/left
+" which is not very intuitive.
+set splitbelow splitright
 
 " By default, Vim doesn't let you hide a buffer (i.e. have a buffer that isn't
 " shown in any window) that has unsaved changes. This is to prevent you from "
 " forgetting about unsaved changes and then quitting e.g. via `:qa!`. We find
-" hidden buffers helpful enough to disable this protection. See `:help hidden`
-" for more information on this.
+" hidden buffers helpful enough to disable this protection.
+" See `:help hidden` for more information on this.
 set hidden
 
 " This setting makes search case-insensitive when all characters in the string
@@ -66,6 +72,9 @@ set smartcase
 
 " Enable searching as you type, rather than waiting till you press enter.
 set incsearch
+
+" Highlight all seach pattern
+" set hlsearch
 
 " Unbind some useless/annoying default key bindings.
 "   'Q' in normal mode enters Ex mode. You almost never want this.
@@ -84,19 +93,26 @@ set ttymouse=sgr
 " auto indentation
 set autoindent
 
-" Tab to spaces, and tab size options
+" smart indentation
+" set smartindent
+
+" Tab size options
 set tabstop=2
+set softtabstop=2
+set shiftwidth=2
+
+" Translate tab to spaces
 set expandtab
 retab!
 
-" Width is used for >>/<< in normal mode
-set shiftwidth=2
+" Always show at least one line after the position of the cursor
+set scrolloff=2
 
 " Try to prevent bad habits like using the arrow keys for movement. This is
 " not the only possible bad habit. For example, holding down the h/j/k/l keys
 " for movement, rather than using more efficient movement commands, is also a
-" bad habit. The former is enforceable through a .vimrc, while we don't know
-" how to prevent the latter.
+" bad habit. The former is enforceable through a .vimrc
+" while we don't know how to prevent the latter.
 " Do this in normal mode...
 nnoremap <Left>  :echoe "Use h"<CR>
 nnoremap <Right> :echoe "Use l"<CR>
@@ -114,3 +130,34 @@ inoremap <Down>  <ESC>:echoe "Use j"<CR>
 "   but without this removing the backups and swapfiles is annoying
 set nobackup
 set noswapfile
+
+" plugins with vim plug
+call plug#begin('~/.vim/plugged')
+Plug 'itchyny/lightline.vim'              " light line
+Plug 'neovimhaskell/haskell-vim'
+" add more plugins here in the same format `Plug [link]`
+call plug#end()
+
+" as light line is installed as plugin
+" showing mode at the bottom is not necessary anymore
+set noshowmode
+
+" required by lightline
+function! DateTime()
+  return strftime("%a %b %d | %H:%M")
+endfunction
+
+let g:lightline = {
+      \ 'colorscheme': 'solarized',
+      \ 'active': {
+      \   'left': [ [ 'mode', 'paste' ],
+      \             [ 'readonly', 'filename', 'modified' ] ],
+      \   'right': [ [ 'datetime' ],
+      \              [ 'percent', 'lineinfo' ],
+      \              [ 'fileformat', 'fileencoding', 'filetype' ]]
+      \ },
+      \ 'component_function': {
+      \   'datetime': 'DateTime',
+      \ },
+      \}
+
