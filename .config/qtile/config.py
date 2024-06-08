@@ -1,8 +1,3 @@
-# Copyright (c) 2010 Aldo Cortesi
-# Copyright (c) 2010, 2014 dequis
-# Copyright (c) 2012 Randall Ma
-# Copyright (c) 2012-2014 Tycho Andersen
-# Copyright (c) 2012 Craig Barnes
 # Copyright (c) 2013 horsik
 # Copyright (c) 2013 Tao Sauvage
 #
@@ -24,15 +19,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import os, subprocess
+import os
+import subprocess
 
-from libqtile import qtile, bar, layout, widget, hook
+from libqtile import bar, layout, qtile, widget, hook
 from libqtile.config import Click, Drag, Group, Key, Match, Screen
 from libqtile.lazy import lazy
 from libqtile.utils import guess_terminal
 
 mod = "mod4"
-terminal = "alacritty"
+terminal = guess_terminal()
 
 keys = [
     # A list of available commands that can be bound to keys can be found
@@ -43,13 +39,7 @@ keys = [
     Key([mod], "j", lazy.layout.down(), desc="Move focus down"),
     Key([mod], "k", lazy.layout.up(), desc="Move focus up"),
     Key([mod], "space", lazy.layout.next(), desc="Move window focus to other window"),
-    # Move windows between left/right columns or move up/down in current stack.
-    # Moving out of range in Columns layout will create new column.
-    Key([mod, "shift"], "h", lazy.layout.shuffle_left(), desc="Move window to the left"),
-    Key([mod, "shift"], "l", lazy.layout.shuffle_right(), desc="Move window to the right"),
-    Key([mod, "shift"], "j", lazy.layout.shuffle_down(), desc="Move window down"),
-    Key([mod, "shift"], "k", lazy.layout.shuffle_up(), desc="Move window up"),
-    # Grow windows. If current window is on the edge of screen and direction
+    # Move windows between left/right columns or move up/down in current stack.  # Moving out of range in Columns layout will create new column.  Key([mod, "shift"], "h", lazy.layout.shuffle_left(), desc="Move window to the left"), Key([mod, "shift"], "l", lazy.layout.shuffle_right(), desc="Move window to the right"), Key([mod, "shift"], "j", lazy.layout.shuffle_down(), desc="Move window down"), Key([mod, "shift"], "k", lazy.layout.shuffle_up(), desc="Move window up"), # Grow windows. If current window is on the edge of screen and direction
     # will be to screen edge - window would shrink.
     Key([mod, "control"], "h", lazy.layout.grow_left(), desc="Grow window to the left"),
     Key([mod, "control"], "l", lazy.layout.grow_right(), desc="Grow window to the right"),
@@ -68,49 +58,68 @@ keys = [
     ),
     Key([mod], "z", lazy.spawn(terminal), desc="Launch terminal"),
     Key([mod], "c", lazy.spawn("chromium"), desc="Launch browser"),
-    Key([mod], "m", lazy.spawn("spotify-launcher"), desc="Launch spotify"),
     # Toggle between different layouts as defined below
     Key([mod], "Tab", lazy.next_layout(), desc="Toggle between layouts"),
     Key([mod], "q", lazy.window.kill(), desc="Kill focused window"),
+    Key(
+        [mod],
+        "f",
+        lazy.window.toggle_fullscreen(),
+        desc="Toggle fullscreen on the focused window",
+    ),
+    Key([mod], "t", lazy.window.toggle_floating(), desc="Toggle floating on the focused window"),
     Key([mod, "control"], "r", lazy.reload_config(), desc="Reload the config"),
     Key([mod, "control"], "q", lazy.shutdown(), desc="Shutdown Qtile"),
     Key([mod], "r", lazy.spawncmd(), desc="Spawn a command using a prompt widget"),
 ]
 
-groups = [Group("main"), Group("foo"), Group("bar")]
-for i in range(len(groups)):
-    string = chr(49 + i) * 1
+# Add key bindings to switch VTs in Wayland.
+# We can't check qtile.core.name in default config as it is loaded before qtile is started
+# We therefore defer the check until the key binding is run by using .when(func=...)
+for vt in range(1, 8):
+    keys.append(
+        Key(
+            ["control", "mod1"],
+            f"f{vt}",
+            lazy.core.change_vt(vt).when(func=lambda: qtile.core.name == "wayland"),
+            desc=f"Switch to VT{vt}",
+        )
+    )
+
+
+#groups = [Group(i) for i in "12345"]
+groups = [Group(i) for i in ["Earth", "Air", "Water", "Fire"]]
+
+#for i in groups:
+for index, i in enumerate(groups):
     keys.extend(
         [
-            # mod1 + letter of group = switch to group
+            # mod + group number = switch to group
             Key(
-                [mod], string,
-                lazy.group[groups[i].name].toscreen(),
-                desc="Switch to group {}".format(groups[i].name),
+                [mod],
+                #i.name,
+                str(index + 1),
+                lazy.group[i.name].toscreen(),
+                desc="Switch to group {}".format(i.name),
             ),
-            # mod1 + shift + letter of group = switch to & move focused window to group
+            # mod + shift + group number = switch to & move focused window to group
             Key(
-                [mod, "shift"], string,
-                lazy.window.togroup(groups[i].name, switch_group=True),
-                desc="Switch to & move focused window to group {}".format(groups[i].name),
+                [mod, "shift"],
+                #i.name,
+                str(index + 1),
+                lazy.window.togroup(i.name, switch_group=True),
+                desc="Switch to & move focused window to group {}".format(i.name),
             ),
             # Or, use below if you prefer not to switch to that group.
-            # # mod1 + shift + letter of group = move focused window to group
+            # # mod + shift + group number = move focused window to group
             # Key([mod, "shift"], i.name, lazy.window.togroup(i.name),
             #     desc="move focused window to group {}".format(i.name)),
         ]
     )
 
 layouts = [
-    layout.Max(
-    
-    ),
-    layout.Columns(
-      margin=6,
-      border_focus="#af69af", 
-      border_normal="#112233", 
-      border_width=1
-    ),
+    layout.Columns(border_focus_stack=["#d75f5f", "#8f3d3d"], border_width=4),
+    layout.Max(),
     # Try more layouts by unleashing below layouts.
     # layout.Stack(num_stacks=2),
     # layout.Bsp(),
@@ -126,56 +135,43 @@ layouts = [
 
 widget_defaults = dict(
     font="sans",
-    fontsize=20,
+    fontsize=22,
     padding=3,
-    margin=5,
-    margin_x=7,
-    margin_y=2,
-    background="#1d1f1f",
 )
 extension_defaults = widget_defaults.copy()
 
 screens = [
     Screen(
-        top=bar.Bar(
+        bottom=bar.Bar(
             [
-              widget.Image(
-                filename = "~/.config/qtile/icons/cpp.png",
-                scale = "True",
-                mouse_callbacks = {'Button1': lambda: qtile.cmd_spawn(terminal)}
-              ),
-              widget.GroupBox(
-                  active="#aa00bb",
-                  inactive="#699669",
-                ),
+                widget.CurrentLayout(),
+                widget.GroupBox(),
                 widget.Prompt(),
                 widget.WindowName(),
-                #widget.Chord(
-                #    chords_colors={
-                #        "launch": ("#ff0000", "#ffffff"),
-                #    },
-                #    name_transform=lambda name: name.upper(),
-                #),
+                widget.Chord(
+                    chords_colors={
+                        "launch": ("#ff0000", "#ffffff"),
+                    },
+                    name_transform=lambda name: name.upper(),
+                ),
+                # widget.TextBox("default config", name="default"),
+                # widget.TextBox("Press &lt;M-r&gt; to spawn", foreground="#d75f5f"),
                 # NB Systray is incompatible with Wayland, consider using StatusNotifier instead
                 # widget.StatusNotifier(),
-                widget.Systray(), 
-                widget.Volume(
-                  background="#0033aa",
-                ),
-                widget.Clock(format=" %H:%M  %a  %d.%m.%Y"),
-                widget.QuickExit(
-                  default_text="   ⏻    ",
-                  countdown_format=" {} sec ",
-                  font_shadow="#000000",
-                  background="#aa00bb",
-                ),
+                widget.Systray(),
+                widget.Clock(format="%Y-%m-%d %a %I:%M %p"),
+                widget.QuickExit(),
             ],
-            32,
-            background="#1d1f1f",
-            opacity=0.93,
+            28,
+            background="112233",
+            opacity=0.65,
             # border_width=[2, 0, 2, 0],  # Draw top and bottom borders
             # border_color=["ff00ff", "000000", "ff00ff", "000000"]  # Borders are magenta
         ),
+        # You can uncomment this variable if you see that on X11 floating resize/moving is laggy
+        # By default we handle these events delayed to already improve performance, however your system might still be struggling
+        # This variable is set to None (no cap) by default, but you can set it to 60 to indicate that you limit it to 60 events per second
+        # x11_drag_polling_rate = 60,
     ),
 ]
 
@@ -190,6 +186,7 @@ dgroups_key_binder = None
 dgroups_app_rules = []  # type: list
 follow_mouse_focus = True
 bring_front_click = False
+floats_kept_above = True
 cursor_warp = False
 floating_layout = layout.Floating(
     float_rules=[
@@ -213,16 +210,10 @@ auto_minimize = True
 
 # When using the Wayland backend, this can be used to configure input devices.
 wl_input_rules = None
-"""
-@hook.subscribe.startup_once
-def start_once():
-    home = os.path.expanduser('~')
-    subprocess.call([home + '/.config/qtile/autostart.sh'])
-"""
-@hook.subscribe.startup_once
-def autostart():
-    home = os.path.expanduser('~/.config/qtile/autostart.sh')
-    subprocess.Popen([home])
+
+# xcursor theme (string or None) and size (integer) for Wayland backend
+wl_xcursor_theme = None
+wl_xcursor_size = 24
 
 # XXX: Gasp! We're lying here. In fact, nobody really uses or cares about this
 # string besides java UI toolkits; you can see several discussions on the
@@ -233,4 +224,10 @@ def autostart():
 # We choose LG3D to maximize irony: it is a 3D non-reparenting WM written in
 # java that happens to be on java's whitelist.
 wmname = "LG3D"
+
+# load startup processes
+@hook.subscribe.startup_once
+def autostart():
+    home = os.path.expanduser('~/.config/qtile/autostart.sh')
+    subprocess.Popen([home])
 
