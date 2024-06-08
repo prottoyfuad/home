@@ -3,10 +3,10 @@
 xrandr -s 1920x1080
 
 nm-applet &
+volumeicon &
 
 picom &
 nitrogen --restore &
-#volumeicon &
 
 # festival --tts $HOME/.config/qtile/welcome_msg &
 # lxsession &
